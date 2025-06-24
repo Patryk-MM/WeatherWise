@@ -1,55 +1,83 @@
-﻿# api_clients/open_meteo_client.py
-import requests
+﻿import requests
 from datetime import datetime, timedelta
-from .base import WeatherAPIClient
+from .base import WeatherAPIClient, WeatherData
+from config.settings import WeatherConfig
+from exceptions.weather_exceptions import LocationNotSupportedError, DataFetchError
 import pandas as pd
 
-class OpenMeteoClient(WeatherAPIClient):
-    def fetch(self, location: str):
-        print("Fetching from Open-Meteo...")
 
-        location_map = {
-            "warsaw": (52.2297, 21.0122),
-            "krakow": (50.0647, 19.9450),
-            "poznan": (52.4064, 16.9252)
-        }
+class OpenMeteoClient(WeatherAPIClient):
+    def __init__(self):
+        super().__init__("OpenMeteo")
+        self.config = WeatherConfig()
+        self.base_url = "https://archive-api.open-meteo.com/v1/archive"
+
+    def is_available(self) -> bool:
+        return True  # Open-Meteo is free and doesn't require API key
+
+    def fetch(self, location: str) -> WeatherData:
+        self.logger.info(f"Fetching weather data from Open-Meteo for {location}")
 
         loc_key = location.lower()
-        if loc_key not in location_map:
-            raise ValueError("Unsupported location.")
+        if loc_key not in self.config.LOCATIONS:
+            raise LocationNotSupportedError(f"Location '{location}' not supported")
 
-        lat, lon = location_map[loc_key]
+        lat, lon = self.config.LOCATIONS[loc_key]
 
         today = datetime.now().date()
-        start_date = today - timedelta(days=365)
+        start_date = today - timedelta(days=self.config.HISTORICAL_DAYS)
 
-        url = "https://archive-api.open-meteo.com/v1/archive"
         params = {
             "latitude": lat,
             "longitude": lon,
             "start_date": start_date.isoformat(),
             "end_date": today.isoformat(),
-            "daily": "temperature_2m_mean,temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean",
+            "daily": "temperature_2m_mean,temperature_2m_max,temperature_2m_min,relative_humidity_2m_mean,surface_pressure_mean,wind_speed_10m_mean,precipitation_sum",
             "timezone": "Europe/Warsaw"
         }
 
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
+        try:
+            response = requests.get(self.base_url, params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
 
-        daily = data.get("daily", {})
-        df = pd.DataFrame(daily)
+            daily = data.get("daily", {})
+            if not daily:
+                raise DataFetchError("No daily data available from Open-Meteo")
 
-        return {
-            "source": "OpenMeteo",
-            "avg_temp": self.safe_round(df["temperature_2m_mean"].mean(), 2),
-            "max_temp": self.safe_round(df["temperature_2m_max"].max(), 2),
-            "min_temp": self.safe_round(df["temperature_2m_min"].min(), 2),
-            "avg_humidity": self.safe_round(df["relative_humidity_2m_mean"].mean(), 2) if "relative_humidity_2m_mean" in df else None,
-            "series": df.rename(columns={"date": "date"})
-        }
+            df = pd.DataFrame(daily)
 
-    def safe_round(self, value, digits):
-        if pd.isna(value) or value is None:
-            return None
-        return round(value, digits)
+            # Prepare time series data
+            series_data = []
+            if "time" in df.columns and "temperature_2m_mean" in df.columns:
+                series_data = [
+                    {"date": row["time"], "temperature": self.safe_round(row["temperature_2m_mean"])}
+                    for _, row in df.iterrows()
+                    if pd.notna(row["temperature_2m_mean"])
+                ]
+
+            return WeatherData(
+                source=self.name,
+                location=location,
+                timestamp=datetime.now(),
+                avg_temp=self.safe_round(
+                    df["temperature_2m_mean"].mean()) if "temperature_2m_mean" in df.columns else None,
+                max_temp=self.safe_round(
+                    df["temperature_2m_max"].max()) if "temperature_2m_max" in df.columns else None,
+                min_temp=self.safe_round(
+                    df["temperature_2m_min"].min()) if "temperature_2m_min" in df.columns else None,
+                humidity=self.safe_round(
+                    df["relative_humidity_2m_mean"].mean()) if "relative_humidity_2m_mean" in df.columns else None,
+                pressure=self.safe_round(
+                    df["surface_pressure_mean"].mean()) if "surface_pressure_mean" in df.columns else None,
+                wind_speed=self.safe_round(
+                    df["wind_speed_10m_mean"].mean()) if "wind_speed_10m_mean" in df.columns else None,
+                precipitation=self.safe_round(
+                    df["precipitation_sum"].sum()) if "precipitation_sum" in df.columns else None,
+                series=series_data
+            )
+
+        except requests.RequestException as e:
+            raise DataFetchError(f"Failed to fetch data from Open-Meteo: {str(e)}")
+        except Exception as e:
+            raise DataFetchError(f"Error processing Open-Meteo data: {str(e)}")

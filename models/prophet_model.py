@@ -1,30 +1,74 @@
 ﻿from prophet import Prophet
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
+from config.settings import WeatherConfig
+import os
 
 
-def forecast_temperature(df: pd.DataFrame, periods: int = 7) -> pd.DataFrame:
-    df = df.rename(columns={"date": "ds", "temperature": "y"}) if "date" in df else df
+class WeatherForecaster:
+    def __init__(self):
+        self.config = WeatherConfig()
+        self.model = None
 
-    model = Prophet()
-    model.fit(df)
+    def forecast_temperature(self, df: pd.DataFrame, periods: int = None) -> pd.DataFrame:
+        """Generate temperature forecast using Prophet"""
+        if periods is None:
+            periods = self.config.FORECAST_DAYS
 
-    future = model.make_future_dataframe(periods=periods)
-    forecast = model.predict(future)
+        # Ensure proper column names for Prophet
+        if "date" in df.columns:
+            df = df.rename(columns={"date": "ds", "temperature": "y"})
 
-    return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
+        # Initialize and fit model
+        self.model = Prophet(
+            yearly_seasonality=True,
+            weekly_seasonality=True,
+            daily_seasonality=False,
+            changepoint_prior_scale=0.05
+        )
 
+        self.model.fit(df)
 
-def plot_forecast(forecast_df, title="Prognoza temperatury"):
-    plt.figure(figsize=(10, 5))
-    plt.plot(forecast_df["ds"], forecast_df["yhat"], label="Prognozowana temp.", color="blue")
-    plt.fill_between(forecast_df["ds"], forecast_df["yhat_lower"], forecast_df["yhat_upper"],
-                     color="lightblue", alpha=0.4, label="Przedział ufności")
-    plt.xticks(rotation=45)
-    plt.xlabel("Data")
-    plt.ylabel("Temperatura [°C]")
-    plt.title(title)
-    plt.legend()
-    plt.tight_layout()
-    plt.grid(True)
-    plt.show()
+        # Create future dataframe
+        future = self.model.make_future_dataframe(periods=periods)
+        forecast = self.model.predict(future)
+
+        return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
+
+    def plot_forecast(self, forecast_df: pd.DataFrame, historical_df: pd.DataFrame = None,
+                      title: str = "Temperature Forecast", save_path: str = None):
+        """Create and save forecast plot"""
+        plt.style.use(self.config.PLOT_STYLE)
+        fig, ax = plt.subplots(figsize=self.config.FIGURE_SIZE)
+
+        # Plot historical data if available
+        if historical_df is not None:
+            ax.plot(historical_df["ds"], historical_df["y"],
+                    label="Historical Data", color="gray", alpha=0.7, linewidth=1)
+
+        # Plot forecast
+        ax.plot(forecast_df["ds"], forecast_df["yhat"],
+                label="Forecast", color="blue", linewidth=2)
+
+        # Add confidence interval
+        ax.fill_between(forecast_df["ds"], forecast_df["yhat_lower"], forecast_df["yhat_upper"],
+                        color="lightblue", alpha=0.4, label="Confidence Interval")
+
+        # Formatting
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Temperature (°C)")
+        ax.set_title(title)
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        # Rotate x-axis labels
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Save if path provided
+        if save_path:
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+
+        plt.show()

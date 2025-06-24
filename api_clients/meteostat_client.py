@@ -1,56 +1,68 @@
 ﻿from meteostat import Point, Daily
 from datetime import datetime, timedelta
-from .base import WeatherAPIClient
+from .base import WeatherAPIClient, WeatherData
+from config.settings import WeatherConfig
+from exceptions.weather_exceptions import LocationNotSupportedError, DataFetchError
 import pandas as pd
 
-class MeteostatClient(WeatherAPIClient):
-    def fetch(self, location: str):
-        print("Fetching from Meteostat...")
 
-        location_map = {
-            "warsaw": Point(52.2297, 21.0122),
-            "krakow": Point(50.0647, 19.9450),
-            "poznan": Point(52.4064, 16.9252)
-        }
+class MeteostatClient(WeatherAPIClient):
+    def __init__(self):
+        super().__init__("Meteostat")
+        self.config = WeatherConfig()
+
+    def is_available(self) -> bool:
+        return True  # Meteostat doesn't require API key
+
+    def fetch(self, location: str) -> WeatherData:
+        self.logger.info(f"Fetching weather data from Meteostat for {location}")
 
         loc_key = location.lower()
-        if loc_key not in location_map:
-            raise ValueError("Unsupported location.")
+        if loc_key not in self.config.LOCATIONS:
+            raise LocationNotSupportedError(f"Location '{location}' not supported")
 
-        point = location_map[loc_key]
+        lat, lon = self.config.LOCATIONS[loc_key]
+        point = Point(lat, lon)
+
         today = datetime.now()
-        start = today - timedelta(days=365)
+        start = today - timedelta(days=self.config.HISTORICAL_DAYS)
 
-        data: pd.DataFrame = Daily(point, start, today).fetch()
+        try:
+            data = Daily(point, start, today).fetch()
 
-        if data.empty:
-            print("⚠️ Brak danych z Meteostata")
-            return {
-                "source": "Meteostat",
-                "avg_temp": None,
-                "max_temp": None,
-                "min_temp": None,
-                "avg_humidity": None
-            }
+            if data.empty:
+                raise DataFetchError("No data available from Meteostat")
 
-        # fallback jeśli nie ma tavg
-        if "tavg" in data:
-            avg_temp = self.safe_round(data["tavg"].mean(), 2)
-        elif "tmin" in data and "tmax" in data:
-            avg_temp = self.safe_round(((data["tmin"] + data["tmax"]) / 2).mean(), 2)
-        else:
+            # Calculate average temperature with fallback
             avg_temp = None
+            if "tavg" in data.columns:
+                avg_temp = self.safe_round(data["tavg"].mean())
+            elif "tmin" in data.columns and "tmax" in data.columns:
+                avg_temp = self.safe_round(((data["tmin"] + data["tmax"]) / 2).mean())
 
-        return {
-            "source": "Meteostat",
-            "avg_temp": avg_temp,
-            "max_temp": self.safe_round(data["tmax"].max(), 2) if "tmax" in data else None,
-            "min_temp": self.safe_round(data["tmin"].min(), 2) if "tmin" in data else None,
-            "avg_humidity": self.safe_round(data["rhum"].mean(), 2) if "rhum" in data else None,
-            "series": data[["tavg"]].rename(columns={"tavg": "temperature"}).reset_index().dropna()
-        }
+            # Prepare time series data
+            series_data = []
+            if "tavg" in data.columns:
+                series_df = data[["tavg"]].reset_index()
+                series_data = [
+                    {"date": row["time"].strftime("%Y-%m-%d"), "temperature": self.safe_round(row["tavg"])}
+                    for _, row in series_df.iterrows()
+                    if pd.notna(row["tavg"])
+                ]
 
-    def safe_round(self, value, digits):
-        if pd.isna(value) or value is None:
-            return None
-        return round(value, digits)
+            return WeatherData(
+                source=self.name,
+                location=location,
+                timestamp=datetime.now(),
+                avg_temp=avg_temp,
+                max_temp=self.safe_round(data["tmax"].max()) if "tmax" in data.columns else None,
+                min_temp=self.safe_round(data["tmin"].min()) if "tmin" in data.columns else None,
+                humidity=self.safe_round(data["rhum"].mean()) if "rhum" in data.columns else None,
+                pressure=self.safe_round(data["pres"].mean()) if "pres" in data.columns else None,
+                wind_speed=self.safe_round(data["wspd"].mean()) if "wspd" in data.columns else None,
+                precipitation=self.safe_round(data["prcp"].sum()) if "prcp" in data.columns else None,
+                series=series_data
+            )
+
+        except Exception as e:
+            raise DataFetchError(f"Failed to fetch data from Meteostat: {str(e)}")

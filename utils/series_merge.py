@@ -1,27 +1,42 @@
 ﻿import pandas as pd
-from typing import List, Dict
+from typing import List, Optional
+from api_clients.base import WeatherData
+from exceptions.weather_exceptions import InsufficientDataError
 
-def merge_series(sources: List[Dict]) -> pd.DataFrame:
-    series_list = []
 
-    for src in sources:
-        if "series" in src and not src["series"].empty:
-            df = src["series"].copy()
+class TimeSeriesMerger:
+    @staticmethod
+    def merge_series(weather_data_list: List[WeatherData]) -> pd.DataFrame:
+        """Merge time series data from multiple sources"""
+        series_list = []
 
-            # Naprawa: automatycznie wykrywamy nazwę kolumny z datą
-            date_col = next((col for col in df.columns if col.lower() in ['date', 'ds', 'time']), None)
-            temp_col = next((col for col in df.columns if 'temp' in col.lower() or col.lower() == 'y'), None)
-
-            if not date_col or not temp_col:
-                print(f"⚠️ Nieprawidłowy format danych w {src['source']}")
+        for data in weather_data_list:
+            if not data.series:
                 continue
 
-            df = df.rename(columns={date_col: "ds", temp_col: "y"})
-            series_list.append(df[["ds", "y"]])
+            df = pd.DataFrame(data.series)
+            if df.empty:
+                continue
 
-    if not series_list:
-        raise ValueError("No time series available in any source.")
+            # Ensure proper column names
+            if "date" in df.columns and "temperature" in df.columns:
+                df["date"] = pd.to_datetime(df["date"])
+                df = df.dropna(subset=["temperature"])
+                series_list.append(df[["date", "temperature"]])
 
-    merged = pd.concat(series_list).groupby("ds", as_index=False).mean()
-    merged["ds"] = pd.to_datetime(merged["ds"])
-    return merged.sort_values("ds")
+        if not series_list:
+            raise InsufficientDataError("No time series data available from any source")
+
+        # Merge all series and calculate mean for overlapping dates
+        merged = pd.concat(series_list).groupby("date", as_index=False).agg({
+            "temperature": ["mean", "count", "std"]
+        })
+
+        # Flatten column names
+        merged.columns = ["date", "temperature_mean", "temperature_count", "temperature_std"]
+        merged = merged.sort_values("date").reset_index(drop=True)
+
+        # Rename for Prophet compatibility
+        merged = merged.rename(columns={"date": "ds", "temperature_mean": "y"})
+
+        return merged
