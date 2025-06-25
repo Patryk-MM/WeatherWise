@@ -2,17 +2,17 @@
 import pkgutil
 import logging
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from utils.parallel_processor import ParallelWeatherProcessor, fetch_single_client
 from datetime import datetime
 from pathlib import Path
 from typing import List
 
 from api_clients.base import WeatherAPIClient
 from utils.aggregator import WeatherAggregator
+from utils.performance import measure_time, profile_function
 from utils.series_merge import TimeSeriesMerger
 from models.prophet_model import WeatherForecaster
 from config.settings import WeatherConfig
-from exceptions.weather_exceptions import WeatherAPIError
 
 # Configure logging
 logging.basicConfig(
@@ -62,32 +62,17 @@ class WeatherWise:
 
         return clients
 
+    @measure_time
+    @profile_function
     def fetch_all_data(self, location: str):
-        """Fetch weather data from all available sources concurrently"""
         clients = self.get_all_clients()
-        results = []
+        print(f"🔁 Rozpoczynanie równoległego pobierania danych z {len(clients)} źródeł...")
 
-        if not clients:
-            logger.error("No weather clients available")
-            return results
+        # przygotuj argumenty: lista (client, location)
+        args_list = [(client, location) for client in clients]
 
-        with ThreadPoolExecutor(max_workers=len(clients)) as executor:
-            futures = {executor.submit(client.fetch, location): client
-                       for client in clients}
-
-            for future in as_completed(futures):
-                client = futures[future]
-                try:
-                    result = future.result(timeout=30)
-                    results.append(result)
-                    logger.info(f"Successfully fetched data from {client.name}")
-
-                except WeatherAPIError as e:
-                    logger.error(f"Weather API error from {client.name}: {e}")
-                except Exception as e:
-                    logger.error(f"Unexpected error from {client.name}: {e}")
-
-        return results
+        results = ParallelWeatherProcessor.run_parallel(fetch_single_client, args_list)
+        return [r for r in results if r is not None]
 
     def run_analysis(self, location: str = "Warsaw"):
         """Run complete weather analysis"""
