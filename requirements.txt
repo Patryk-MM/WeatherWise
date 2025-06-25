@@ -1,0 +1,6 @@
+﻿streamlit
+prophet
+pandas
+matplotlib
+requests
+meteostat

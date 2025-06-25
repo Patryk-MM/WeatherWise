@@ -38,7 +38,7 @@ class WeatherForecaster:
 
     def plot_forecast(self, forecast_df: pd.DataFrame, historical_df: pd.DataFrame = None,
                       title: str = "Temperature Forecast", save_path: str = None):
-        """Create and save forecast plot"""
+        """Create and optionally save forecast plot"""
         plt.style.use(self.config.PLOT_STYLE)
         fig, ax = plt.subplots(figsize=self.config.FIGURE_SIZE)
 
@@ -62,13 +62,12 @@ class WeatherForecaster:
         ax.legend()
         ax.grid(True, alpha=0.3)
 
-        # Rotate x-axis labels
         plt.xticks(rotation=45)
         plt.tight_layout()
 
-        # Save if path provided
+        # Save if needed
         if save_path:
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            fig.savefig(save_path, dpi=300, bbox_inches='tight')
 
-        plt.show()
+        return fig
