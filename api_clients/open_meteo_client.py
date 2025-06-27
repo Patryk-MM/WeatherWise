@@ -13,7 +13,7 @@ class OpenMeteoClient(WeatherAPIClient):
         self.base_url = "https://archive-api.open-meteo.com/v1/archive"
 
     def is_available(self) -> bool:
-        return True  # Open-Meteo is free and doesn't require API key
+        return True
 
     def fetch(self, location: str) -> WeatherData:
         self.logger.info(f"Fetching weather data from Open-Meteo for {location}")
@@ -47,7 +47,6 @@ class OpenMeteoClient(WeatherAPIClient):
 
             df = pd.DataFrame(daily)
 
-            # Prepare time series data
             series_data = []
             if "time" in df.columns and "temperature_2m_mean" in df.columns:
                 series_data = [

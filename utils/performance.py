@@ -4,7 +4,6 @@ import psutil
 import os
 
 def measure_time(func):
-    """Dekorator mierzący czas wykonania funkcji"""
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         start = time.time()
@@ -15,7 +14,6 @@ def measure_time(func):
     return wrapper
 
 def profile_function(func):
-    """Dekorator mierzący zużycie CPU i pamięci"""
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         process = psutil.Process(os.getpid())

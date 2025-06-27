@@ -68,7 +68,6 @@ class WeatherWise:
         clients = self.get_all_clients()
         print(f"🔁 Rozpoczynanie równoległego pobierania danych z {len(clients)} źródeł...")
 
-        # przygotuj argumenty: lista (client, location)
         args_list = [(client, location) for client in clients]
 
         results = ParallelWeatherProcessor.run_parallel(fetch_single_client, args_list)
@@ -78,7 +77,6 @@ class WeatherWise:
         """Run complete weather analysis"""
         logger.info(f"Starting weather analysis for {location}")
 
-        # Fetch data from all sources
         weather_data = self.fetch_all_data(location)
 
         if not weather_data:
@@ -99,7 +97,6 @@ class WeatherWise:
             print(f"   Wind Speed: {data.wind_speed} m/s")
             print(f"   Precipitation: {data.precipitation} mm")
 
-        # Aggregate data
         aggregated = self.aggregator.aggregate_weather_data(weather_data)
 
         print(f"\n📊 Aggregated Weather Summary")
@@ -108,7 +105,6 @@ class WeatherWise:
             if not key.endswith(('_min', '_max', '_count')):
                 print(f"{key.replace('_', ' ').title()}: {value}")
 
-        # Generate forecast
         try:
             merged_series = self.merger.merge_series(weather_data)
             forecast = self.forecaster.forecast_temperature(merged_series)
@@ -124,7 +120,6 @@ class WeatherWise:
                 upper = round(row['yhat_upper'], 1)
                 print(f"{date}: {temp}°C (range: {lower}°C - {upper}°C)")
 
-            # Create and save plot
             output_dir = Path(self.config.OUTPUT_DIR)
             output_dir.mkdir(exist_ok=True)
 
@@ -144,7 +139,6 @@ class WeatherWise:
 
 
 def main():
-    """Main entry point"""
     weather_app = WeatherWise()
 
     # You can change the location here or make it configurable

@@ -6,7 +6,6 @@ import statistics
 class WeatherAggregator:
     @staticmethod
     def aggregate_weather_data(weather_data_list: List[WeatherData]) -> Dict[str, Optional[float]]:
-        """Aggregate weather data from multiple sources using median for robustness"""
         if not weather_data_list:
             return {}
 

@@ -12,15 +12,12 @@ class WeatherForecaster:
         self.model = None
 
     def forecast_temperature(self, df: pd.DataFrame, periods: int = None) -> pd.DataFrame:
-        """Generate temperature forecast using Prophet"""
         if periods is None:
             periods = self.config.FORECAST_DAYS
 
-        # Ensure proper column names for Prophet
         if "date" in df.columns:
             df = df.rename(columns={"date": "ds", "temperature": "y"})
 
-        # Initialize and fit model
         self.model = Prophet(
             yearly_seasonality=True,
             weekly_seasonality=True,
@@ -30,7 +27,6 @@ class WeatherForecaster:
 
         self.model.fit(df)
 
-        # Create future dataframe
         future = self.model.make_future_dataframe(periods=periods)
         forecast = self.model.predict(future)
 
@@ -38,24 +34,20 @@ class WeatherForecaster:
 
     def plot_forecast(self, forecast_df: pd.DataFrame, historical_df: pd.DataFrame = None,
                       title: str = "Temperature Forecast", save_path: str = None):
-        """Create and optionally save forecast plot"""
+
         plt.style.use(self.config.PLOT_STYLE)
         fig, ax = plt.subplots(figsize=self.config.FIGURE_SIZE)
 
-        # Plot historical data if available
         if historical_df is not None:
             ax.plot(historical_df["ds"], historical_df["y"],
                     label="Historical Data", color="gray", alpha=0.7, linewidth=1)
 
-        # Plot forecast
         ax.plot(forecast_df["ds"], forecast_df["yhat"],
                 label="Forecast", color="blue", linewidth=2)
 
-        # Add confidence interval
         ax.fill_between(forecast_df["ds"], forecast_df["yhat_lower"], forecast_df["yhat_upper"],
                         color="lightblue", alpha=0.4, label="Confidence Interval")
 
-        # Formatting
         ax.set_xlabel("Date")
         ax.set_ylabel("Temperature (°C)")
         ax.set_title(title)

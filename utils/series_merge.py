@@ -7,7 +7,6 @@ from exceptions.weather_exceptions import InsufficientDataError
 class TimeSeriesMerger:
     @staticmethod
     def merge_series(weather_data_list: List[WeatherData]) -> pd.DataFrame:
-        """Merge time series data from multiple sources"""
         series_list = []
 
         for data in weather_data_list:

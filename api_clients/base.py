@@ -42,16 +42,13 @@ class WeatherAPIClient(ABC):
 
     @abstractmethod
     def fetch(self, location: str) -> WeatherData:
-        """Fetch weather data for a given location"""
         pass
 
     @abstractmethod
     def is_available(self) -> bool:
-        """Check if the API is available and properly configured"""
         pass
 
     def safe_round(self, value, digits: int = 2) -> Optional[float]:
-        """Safely round a value, handling None and NaN"""
         if value is None or (hasattr(value, 'isna') and value.isna()):
             return None
         try:

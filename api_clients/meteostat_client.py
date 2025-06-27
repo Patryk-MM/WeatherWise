@@ -12,7 +12,7 @@ class MeteostatClient(WeatherAPIClient):
         self.config = WeatherConfig()
 
     def is_available(self) -> bool:
-        return True  # Meteostat doesn't require API key
+        return True
 
     def fetch(self, location: str) -> WeatherData:
         self.logger.info(f"Fetching weather data from Meteostat for {location}")
@@ -33,14 +33,12 @@ class MeteostatClient(WeatherAPIClient):
             if data.empty:
                 raise DataFetchError("No data available from Meteostat")
 
-            # Calculate average temperature with fallback
             avg_temp = None
             if "tavg" in data.columns:
                 avg_temp = self.safe_round(data["tavg"].mean())
             elif "tmin" in data.columns and "tmax" in data.columns:
                 avg_temp = self.safe_round(((data["tmin"] + data["tmax"]) / 2).mean())
 
-            # Prepare time series data
             series_data = []
             if "tavg" in data.columns:
                 series_df = data[["tavg"]].reset_index()
