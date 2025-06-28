@@ -15,11 +15,11 @@ class MeteostatClient(WeatherAPIClient):
         return True
 
     def fetch(self, location: str) -> WeatherData:
-        self.logger.info(f"Fetching weather data from Meteostat for {location}")
+        self.logger.info(f"Pozyskanie danych pogodowych z Meteostat dla {location}")
 
         loc_key = location.lower()
         if loc_key not in self.config.LOCATIONS:
-            raise LocationNotSupportedError(f"Location '{location}' not supported")
+            raise LocationNotSupportedError(f"Lokalizacja o nazwie: '{location}' nie jest wspierane.")
 
         lat, lon = self.config.LOCATIONS[loc_key]
         point = Point(lat, lon)
@@ -31,7 +31,7 @@ class MeteostatClient(WeatherAPIClient):
             data = Daily(point, start, today).fetch()
 
             if data.empty:
-                raise DataFetchError("No data available from Meteostat")
+                raise DataFetchError("Brak dostepnych danych z Meteostat")
 
             avg_temp = None
             if "tavg" in data.columns:
@@ -63,4 +63,4 @@ class MeteostatClient(WeatherAPIClient):
             )
 
         except Exception as e:
-            raise DataFetchError(f"Failed to fetch data from Meteostat: {str(e)}")
+            raise DataFetchError(f"Wystapil blad podczas pozyskiwania danych z Meteostat: {str(e)}")

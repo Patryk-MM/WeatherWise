@@ -16,11 +16,11 @@ class OpenMeteoClient(WeatherAPIClient):
         return True
 
     def fetch(self, location: str) -> WeatherData:
-        self.logger.info(f"Fetching weather data from Open-Meteo for {location}")
+        self.logger.info(f"Pozyskanie danych pogodowych z Open-Meteo dla {location}")
 
         loc_key = location.lower()
         if loc_key not in self.config.LOCATIONS:
-            raise LocationNotSupportedError(f"Location '{location}' not supported")
+            raise LocationNotSupportedError(f"Lokalizacja o nazwie: '{location}' nie jest wspierane.")
 
         lat, lon = self.config.LOCATIONS[loc_key]
 
@@ -43,7 +43,7 @@ class OpenMeteoClient(WeatherAPIClient):
 
             daily = data.get("daily", {})
             if not daily:
-                raise DataFetchError("No daily data available from Open-Meteo")
+                raise DataFetchError("Brak dostepnych danych z Open-Meteo")
 
             df = pd.DataFrame(daily)
 
@@ -77,6 +77,6 @@ class OpenMeteoClient(WeatherAPIClient):
             )
 
         except requests.RequestException as e:
-            raise DataFetchError(f"Failed to fetch data from Open-Meteo: {str(e)}")
+            raise DataFetchError(f"Wystapil blad podczas pozyskiwania danych z Open-Meteo: {str(e)}")
         except Exception as e:
-            raise DataFetchError(f"Error processing Open-Meteo data: {str(e)}")
+            raise DataFetchError(f"Wystapil blad podczas procesowania danych z Open-Meteo : {str(e)}")

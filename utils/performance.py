@@ -9,7 +9,7 @@ def measure_time(func):
         start = time.time()
         result = func(*args, **kwargs)
         end = time.time()
-        print(f"{func.__name__} took {end - start:.3f}s")
+        print(f"{func.__name__} zajelo {end - start:.3f}s")
         return result
     return wrapper
 
