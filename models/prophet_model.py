@@ -32,6 +32,8 @@ class WeatherForecaster:
 
         return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]]
 
+
+# wykres do zapisu
     def plot_forecast(self, forecast_df: pd.DataFrame, historical_df: pd.DataFrame = None,
                       title: str = "Temperature Forecast", save_path: str = None):
 
@@ -40,16 +42,16 @@ class WeatherForecaster:
 
         if historical_df is not None:
             ax.plot(historical_df["ds"], historical_df["y"],
-                    label="Historical Data", color="gray", alpha=0.7, linewidth=1)
+                    label="Data Historyczna", color="gray", alpha=0.7, linewidth=1)
 
         ax.plot(forecast_df["ds"], forecast_df["yhat"],
-                label="Forecast", color="blue", linewidth=2)
+                label="Prognoza", color="blue", linewidth=2)
 
         ax.fill_between(forecast_df["ds"], forecast_df["yhat_lower"], forecast_df["yhat_upper"],
-                        color="lightblue", alpha=0.4, label="Confidence Interval")
+                        color="lightblue", alpha=0.4, label="Przedzial ufnosci")
 
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Temperature (°C)")
+        ax.set_xlabel("Data")
+        ax.set_ylabel("Temperatura (°C)")
         ax.set_title(title)
         ax.legend()
         ax.grid(True, alpha=0.3)

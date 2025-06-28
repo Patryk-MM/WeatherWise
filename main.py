@@ -52,12 +52,12 @@ class WeatherWise:
                         client = obj()
                         if client.is_available():
                             clients.append(client)
-                            logger.info(f"Loaded client: {client.name}")
+                            logger.info(f"Zaladowano dla: {client.name}")
                         else:
-                            logger.warning(f"Client {client.name} is not available")
+                            logger.warning(f"{client.name} nie jest chwilowo dostepny")
 
             except ImportError as e:
-                logger.error(f"Failed to load module {modname}: {e}")
+                logger.error(f"Wystapil bląd z zaladowaniem modulu {modname}: {e}")
 
         return clients
 
@@ -65,40 +65,41 @@ class WeatherWise:
     @profile_function
     def fetch_all_data(self, location: str):
         clients = self.get_all_clients()
-        print(f"🔁 Rozpoczynanie równoległego pobierania danych z {len(clients)} źródeł...")
+        print(f"Rozpoczynanie rownoleglego pobierania danych z {len(clients)} zrodel...")
 
         args_list = [(client, location) for client in clients]
 
         results = ParallelWeatherProcessor.run_parallel(fetch_single_client, args_list)
         return [r for r in results if r is not None]
 
-    def run_analysis(self, location: str = "Warsaw"):
+    #def run_analysis(self, location: str = "Warsaw"):
+    def run_analysis(self, location: str):
         """Run complete weather analysis"""
-        logger.info(f"Starting weather analysis for {location}")
+        logger.info(f"Rozpoczecie analizy pogodowej dla:  {location}")
 
         weather_data = self.fetch_all_data(location)
 
         if not weather_data:
-            logger.error("No weather data available")
+            logger.error("Brak dostepnych danych pogodowych")
             return
 
         # Display raw data
-        print(f"\n🌤️  Weather Data for {location.title()}")
+        print(f"\n Dane pogodowe dla:  {location.title()}")
         print("=" * 50)
 
         for data in weather_data:
-            print(f"\n📡 Source: {data.source}")
-            print(f"   Average Temperature: {data.avg_temp}°C")
-            print(f"   Max Temperature: {data.max_temp}°C")
-            print(f"   Min Temperature: {data.min_temp}°C")
-            print(f"   Humidity: {data.humidity}%")
-            print(f"   Pressure: {data.pressure} hPa")
-            print(f"   Wind Speed: {data.wind_speed} m/s")
-            print(f"   Precipitation: {data.precipitation} mm")
+            print(f"\n Zrodlo: {data.source}")
+            print(f"   Srednia Temperatura: {data.avg_temp}°C")
+            print(f"   Max Temperatura: {data.max_temp}°C")
+            print(f"   Min Temperatura: {data.min_temp}°C")
+            print(f"   Wilgotnosc: {data.humidity}%")
+            print(f"   Cisnienie: {data.pressure} hPa")
+            print(f"   Predkosc wiatru: {data.wind_speed} m/s")
+            print(f"   Opady atmosferyczne: {data.precipitation} mm")
 
         aggregated = self.aggregator.aggregate_weather_data(weather_data)
 
-        print(f"\n📊 Aggregated Weather Summary")
+        print(f"\n Zagregowane podsumowanie pogody")
         print("=" * 50)
         for key, value in aggregated.items():
             if not key.endswith(('_min', '_max', '_count')):
@@ -108,7 +109,7 @@ class WeatherWise:
             merged_series = self.merger.merge_series(weather_data)
             forecast = self.forecaster.forecast_temperature(merged_series)
 
-            print(f"\n🔮 7-Day Temperature Forecast")
+            print(f"\n 7-Dniowa Prognoza Pogody")
             print("=" * 50)
 
             recent_forecast = forecast.tail(7)
@@ -127,14 +128,14 @@ class WeatherWise:
             self.forecaster.plot_forecast(
                 forecast.tail(14),
                 merged_series.tail(30),
-                title=f"Temperature Forecast for {location.title()}",
+                title=f"Prognoza temperatury dla: {location.title()}",
                 save_path=str(plot_path)
             )
 
-            logger.info(f"Forecast plot saved to {plot_path}")
+            logger.info(f"Wykres prognozy zostal zapsiany w lokalizacji: {plot_path}")
 
         except Exception as e:
-            logger.error(f"Failed to generate forecast: {e}")
+            logger.error(f"Nie udalo sie wygenerowac prognozy: {e}")
 
 
 def main():

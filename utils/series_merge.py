@@ -17,16 +17,16 @@ class TimeSeriesMerger:
             if df.empty:
                 continue
 
-            # Ensure proper column names
+            # Spr czy nazwy kolumn sa prawidlowe
             if "date" in df.columns and "temperature" in df.columns:
                 df["date"] = pd.to_datetime(df["date"])
                 df = df.dropna(subset=["temperature"])
                 series_list.append(df[["date", "temperature"]])
 
         if not series_list:
-            raise InsufficientDataError("No time series data available from any source")
+            raise InsufficientDataError("Brak dostepnych danych z zakresow czasowych z zrodla")
 
-        # Merge all series and calculate mean for overlapping dates
+        # Laczenie i oblcizanie sredniej dla nakladajacych sie dat
         merged = pd.concat(series_list).groupby("date", as_index=False).agg({
             "temperature": ["mean", "count", "std"]
         })
