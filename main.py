@@ -14,7 +14,6 @@ from utils.series_merge import TimeSeriesMerger
 from models.prophet_model import WeatherForecaster
 from config.settings import WeatherConfig
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -35,7 +34,7 @@ class WeatherWise:
         self.forecaster = WeatherForecaster()
 
     def get_all_clients(self) -> List[WeatherAPIClient]:
-        """Dynamically load all weather API clients"""
+        """Dynamiczne pobieranie danych pogodowych weather API clients"""
         clients = []
 
         for _, modname, _ in pkgutil.iter_modules(['api_clients']):
@@ -141,15 +140,14 @@ class WeatherWise:
 def main():
     weather_app = WeatherWise()
 
-    # You can change the location here or make it configurable
     location = "Krakow"
 
     try:
         weather_app.run_analysis(location)
     except KeyboardInterrupt:
-        logger.info("Analysis interrupted by user")
+        logger.info("Analiza przerwana")
     except Exception as e:
-        logger.error(f"Analysis failed: {e}")
+        logger.error(f"Analiza nie udała się: {e}")
         raise
 
 
