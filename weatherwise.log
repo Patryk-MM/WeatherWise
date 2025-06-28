@@ -514,3 +514,31 @@ cwd: None
 2025-06-28 20:49:38,107 - cmdstanpy - DEBUG - CmdStan args: ['C:\\Users\\fajka\\OneDrive\\Pulpit\\projekt\\WeatherWise\\.venv\\Lib\\site-packages\\prophet\\stan_model\\prophet_model.bin', 'random', 'seed=98521', 'data', 'file=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmpi26n0dnz\\3ro7zsh2.json', 'init=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmpi26n0dnz\\tnxq4zh3.json', 'output', 'file=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmpi26n0dnz\\prophet_model76ndegrh\\prophet_model-20250628204938.csv', 'method=optimize', 'algorithm=lbfgs', 'iter=10000']
 2025-06-28 20:49:38,107 - cmdstanpy - INFO - Chain [1] start processing
 2025-06-28 20:49:38,148 - cmdstanpy - INFO - Chain [1] done processing
+2025-06-28 21:18:58,036 - main - INFO - Zaladowano dla: Meteostat
+2025-06-28 21:18:58,394 - main - INFO - Zaladowano dla: OpenMeteo
+2025-06-28 21:19:02,266 - api_clients.base.Meteostat - INFO - Pozyskanie danych pogodowych z Meteostat dla Warsaw
+2025-06-28 21:19:02,652 - api_clients.base.OpenMeteo - INFO - Pozyskanie danych pogodowych z Open-Meteo dla Warsaw
+2025-06-28 21:19:02,900 - cmdstanpy - DEBUG - cmd: where.exe tbb.dll
+cwd: None
+2025-06-28 21:19:02,970 - cmdstanpy - DEBUG - Adding TBB (C:\Users\fajka\OneDrive\Pulpit\projekt\WeatherWise\.venv\Lib\site-packages\prophet\stan_model\cmdstan-2.33.1\stan\lib\stan_math\lib\tbb) to PATH
+2025-06-28 21:19:02,986 - cmdstanpy - DEBUG - input tempfile: C:\Users\fajka\AppData\Local\Temp\tmprbcvmbx2\l8dlw6ml.json
+2025-06-28 21:19:03,003 - cmdstanpy - DEBUG - input tempfile: C:\Users\fajka\AppData\Local\Temp\tmprbcvmbx2\ptvf1sy6.json
+2025-06-28 21:19:03,005 - cmdstanpy - DEBUG - idx 0
+2025-06-28 21:19:03,005 - cmdstanpy - DEBUG - running CmdStan, num_threads: None
+2025-06-28 21:19:03,006 - cmdstanpy - DEBUG - CmdStan args: ['C:\\Users\\fajka\\OneDrive\\Pulpit\\projekt\\WeatherWise\\.venv\\Lib\\site-packages\\prophet\\stan_model\\prophet_model.bin', 'random', 'seed=56938', 'data', 'file=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmprbcvmbx2\\l8dlw6ml.json', 'init=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmprbcvmbx2\\ptvf1sy6.json', 'output', 'file=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmprbcvmbx2\\prophet_modelizxta74d\\prophet_model-20250628211903.csv', 'method=optimize', 'algorithm=lbfgs', 'iter=10000']
+2025-06-28 21:19:03,006 - cmdstanpy - INFO - Chain [1] start processing
+2025-06-28 21:19:03,045 - cmdstanpy - INFO - Chain [1] done processing
+2025-06-28 21:19:42,324 - main - INFO - Zaladowano dla: Meteostat
+2025-06-28 21:19:42,670 - main - INFO - Zaladowano dla: OpenMeteo
+2025-06-28 21:19:46,506 - api_clients.base.Meteostat - INFO - Pozyskanie danych pogodowych z Meteostat dla Warsaw
+2025-06-28 21:19:46,957 - api_clients.base.OpenMeteo - INFO - Pozyskanie danych pogodowych z Open-Meteo dla Warsaw
+2025-06-28 21:19:47,180 - cmdstanpy - DEBUG - cmd: where.exe tbb.dll
+cwd: None
+2025-06-28 21:19:47,248 - cmdstanpy - DEBUG - Adding TBB (C:\Users\fajka\OneDrive\Pulpit\projekt\WeatherWise\.venv\Lib\site-packages\prophet\stan_model\cmdstan-2.33.1\stan\lib\stan_math\lib\tbb) to PATH
+2025-06-28 21:19:47,263 - cmdstanpy - DEBUG - input tempfile: C:\Users\fajka\AppData\Local\Temp\tmpr9vctzmh\52467yz_.json
+2025-06-28 21:19:47,280 - cmdstanpy - DEBUG - input tempfile: C:\Users\fajka\AppData\Local\Temp\tmpr9vctzmh\esixjj8v.json
+2025-06-28 21:19:47,292 - cmdstanpy - DEBUG - idx 0
+2025-06-28 21:19:47,292 - cmdstanpy - DEBUG - running CmdStan, num_threads: None
+2025-06-28 21:19:47,292 - cmdstanpy - DEBUG - CmdStan args: ['C:\\Users\\fajka\\OneDrive\\Pulpit\\projekt\\WeatherWise\\.venv\\Lib\\site-packages\\prophet\\stan_model\\prophet_model.bin', 'random', 'seed=60088', 'data', 'file=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmpr9vctzmh\\52467yz_.json', 'init=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmpr9vctzmh\\esixjj8v.json', 'output', 'file=C:\\Users\\fajka\\AppData\\Local\\Temp\\tmpr9vctzmh\\prophet_model4a2wjnsz\\prophet_model-20250628211947.csv', 'method=optimize', 'algorithm=lbfgs', 'iter=10000']
+2025-06-28 21:19:47,293 - cmdstanpy - INFO - Chain [1] start processing
+2025-06-28 21:19:47,329 - cmdstanpy - INFO - Chain [1] done processing

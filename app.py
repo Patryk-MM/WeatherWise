@@ -30,12 +30,13 @@ if st.button("Pobierz dane i pokaz prognoze"):
             forecast_display = forecast.tail(7).rename(columns={
                 "ds": "Dzień",
                 "yhat": "Prognoza",
-                "yhat_lower": "Min",
-                "yhat_upper": "Max"
+                "yhat_lower": "Min Temp",
+                "yhat_upper": "Max Temp"
             })
             forecast_display["Dzień"] = forecast_display["Dzień"].dt.strftime("%d.%m.%Y")
             forecast_display = forecast_display.set_index("Dzień")
 
+            st.subheader("Prognoza temperatur na 7 dni")
             st.dataframe(forecast_display)
 
 
